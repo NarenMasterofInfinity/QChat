@@ -28,12 +28,22 @@ def _log(message: str) -> None:
     print(f"[{_ts()}] {message}", flush=True)
 
 
+def _normalize_host(host: str) -> str:
+    """Translate wildcard/listener addresses into a connectable host."""
+
+    if host in {"0.0.0.0", "::", "[::]"}:
+        return "127.0.0.1"
+    return host
+
+
 async def _open_conn(host: str, port: int, use_quic: bool, name: str):
-    if use_quic:
-        _log(f"opening {name} connection via QUIC")
-        return await open_quic_connection(host, port)
-    _log(f"opening {name} connection via TCP")
-    return await asyncio.open_connection(host, port)
+    host = _normalize_host(host)
+# async def _open_conn(host: str, port: int, use_quic: bool, name: str):
+#     if use_quic:
+#         _log(f"opening {name} connection via QUIC")
+#         return await open_quic_connection(host, port)
+#     _log(f"opening {name} connection via TCP")
+#     return await asyncio.open_connection(host, port)
 
 
 async def _ensure_user(conn: Conn, user: str, password: str, timeout: float) -> None:
@@ -278,7 +288,11 @@ async def async_main(args) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark QChat handshake, key exchange, and RTT")
-    parser.add_argument("--host", default="127.0.0.1", help="Server host (default: 127.0.0.1)")
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Server host (default: 127.0.0.1; 0.0.0.0/:: will connect via 127.0.0.1)",
+    )
     parser.add_argument("--port", type=int, default=8443, help="Server port (default: 8443)")
     parser.add_argument("--quic", action="store_true", help="Use QUIC transport instead of TCP")
     parser.add_argument("--trials", type=int, default=5, help="Number of measurement trials (default: 5)")
