@@ -39,11 +39,11 @@ def _normalize_host(host: str) -> str:
 async def _open_conn(host: str, port: int, use_quic: bool, name: str):
     host = _normalize_host(host)
 # async def _open_conn(host: str, port: int, use_quic: bool, name: str):
-#     if use_quic:
-#         _log(f"opening {name} connection via QUIC")
-#         return await open_quic_connection(host, port)
-#     _log(f"opening {name} connection via TCP")
-#     return await asyncio.open_connection(host, port)
+    if use_quic:
+        _log(f"opening {name} connection via QUIC")
+        return await open_quic_connection(host, port)
+    _log(f"opening {name} connection via TCP")
+    return await asyncio.open_connection(host, port)
 
 
 async def _ensure_user(conn: Conn, user: str, password: str, timeout: float) -> None:
